@@ -1,9 +1,23 @@
 
+import { db } from '../db';
+import { ideasTable } from '../db/schema';
 import { type Idea } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const getIdeaById = async (id: number): Promise<Idea | null> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching a single idea by its ID from the database.
-    // Should return the idea if found, or null if no idea exists with the given ID.
-    return Promise.resolve(null);
+  try {
+    const result = await db.select()
+      .from(ideasTable)
+      .where(eq(ideasTable.id, id))
+      .execute();
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('Failed to get idea by id:', error);
+    throw error;
+  }
 };

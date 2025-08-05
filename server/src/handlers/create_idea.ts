@@ -1,17 +1,24 @@
 
+import { db } from '../db';
+import { ideasTable } from '../db/schema';
 import { type CreateIdeaInput, type Idea } from '../schema';
 
 export const createIdea = async (input: CreateIdeaInput): Promise<Idea> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new idea and persisting it in the database.
-    // Should insert the new idea with the provided title, description, and category,
-    // and return the created idea with generated ID and timestamps.
-    return Promise.resolve({
-        id: 1, // Placeholder ID
+  try {
+    // Insert idea record
+    const result = await db.insert(ideasTable)
+      .values({
         title: input.title,
         description: input.description,
-        category: input.category,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Idea);
+        category: input.category
+      })
+      .returning()
+      .execute();
+
+    // Return the created idea
+    return result[0];
+  } catch (error) {
+    console.error('Idea creation failed:', error);
+    throw error;
+  }
 };

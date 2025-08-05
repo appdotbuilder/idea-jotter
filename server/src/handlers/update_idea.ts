@@ -1,18 +1,48 @@
 
+import { db } from '../db';
+import { ideasTable } from '../db/schema';
 import { type UpdateIdeaInput, type Idea } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const updateIdea = async (input: UpdateIdeaInput): Promise<Idea> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is updating an existing idea in the database.
-    // Should find the idea by ID and update only the provided fields.
-    // Should update the updated_at timestamp and return the updated idea.
-    // Should throw an error if the idea with the given ID doesn't exist.
-    return Promise.resolve({
-        id: input.id,
-        title: input.title || 'Placeholder Title',
-        description: input.description || 'Placeholder Description',
-        category: input.category || 'Work Related',
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Idea);
+  try {
+    // Check if idea exists
+    const existingIdea = await db.select()
+      .from(ideasTable)
+      .where(eq(ideasTable.id, input.id))
+      .execute();
+
+    if (existingIdea.length === 0) {
+      throw new Error(`Idea with ID ${input.id} not found`);
+    }
+
+    // Build update object with only provided fields
+    const updateData: any = {
+      updated_at: new Date()
+    };
+
+    if (input.title !== undefined) {
+      updateData.title = input.title;
+    }
+
+    if (input.description !== undefined) {
+      updateData.description = input.description;
+    }
+
+    if (input.category !== undefined) {
+      updateData.category = input.category;
+    }
+
+    // Update the idea
+    const result = await db.update(ideasTable)
+      .set(updateData)
+      .where(eq(ideasTable.id, input.id))
+      .returning()
+      .execute();
+
+    return result[0];
+  } catch (error) {
+    console.error('Idea update failed:', error);
+    throw error;
+  }
 };
